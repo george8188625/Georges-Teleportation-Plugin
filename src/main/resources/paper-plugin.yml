@@ -1,0 +1,57 @@
+name: georgestp
+version: '1.0'
+main: com.george_vi.georgetp.GTPlugin
+api-version: '1.21'
+authors: [ George VI ]
+
+commands:
+  tpa:
+    description: Send a teleport request
+    permission: georgestp.tpa
+  tpahere:
+    description: Send a reversed teleport request
+    permission: georgestp.tpa
+  tpaccept:
+    description: Accept a teleport request
+    permission: georgestp.tpa
+  tpadeny:
+    description: Deny a teleport request
+    permission: georgestp.tpa
+  tpacancel:
+    description: Cancel a teleport request
+    permission: georgestp.tpa
+  spawn:
+    description: Teleport to spawn
+    permission: georgestp.spawn
+  sethome:
+    description: Set a home
+    permission: georgestp.home
+  home:
+    description: Teleport to your home
+    permission: georgestp.home
+  warp:
+    description: Teleport to a warp
+    permission: georgestp.warp
+  setwarp:
+    description: Create or modify a warp
+    permission: georgestp.setwarp
+  delwarp:
+    description: Remove a warp
+    permission: georgestp.setwarp
+  back:
+    description: Remove a warp
+    permission: georgestp.back
+
+permissions:
+  georgestp.tpa:
+    default: true
+  georgestp.spawn:
+    default: true
+  georgestp.home:
+    default: true
+  georgestp.warp:
+    default: true
+  georgestp.setwarp:
+    default: op
+  georgestp.back:
+    default: true

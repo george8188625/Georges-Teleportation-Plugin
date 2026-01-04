@@ -1,0 +1,19 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+build/
+
+# Maven
+target/
+
+# Logs
+logs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+run

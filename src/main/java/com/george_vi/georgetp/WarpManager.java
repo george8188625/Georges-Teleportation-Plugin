@@ -1,0 +1,160 @@
+package com.george_vi.georgetp;
+
+import com.george_vi.georgetp.GTPlugin;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+public class WarpManager {
+    Map<String, Location> allWarps = new HashMap<>();
+    File file;
+    YamlConfiguration config;
+
+    final GTPlugin plugin;
+
+    public boolean dirty;
+    int saveCounter;
+
+    public WarpManager(GTPlugin plugin) {
+        this.plugin = plugin;
+        file = new File(plugin.getDataFolder(), "warps.yml");
+
+        if (!file.exists()) {
+            try {
+                plugin.getDataFolder().mkdirs();
+                file.createNewFile();
+            } catch (IOException err) {
+                plugin.getLogger().severe("Can't save warps.yml");
+            }
+        }
+        config = YamlConfiguration.loadConfiguration(file);
+
+        allWarps.clear();
+
+        for (String key : config.getKeys(false)) {
+            if (!isValidName(key))
+                continue;
+
+            String world = config.getString(key + ".world", null);
+            double x = config.getDouble(key + ".x", 0);
+            double y = config.getDouble(key + ".y", 0);
+            double z = config.getDouble(key + ".z", 0);
+            float yaw = (float) config.getDouble(key + ".yaw", 0f);
+            float pitch = (float) config.getDouble(key + ".pitch", 0f);
+            if (world != null && Bukkit.getWorld(world) != null)
+                allWarps.put(key, new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch));
+        }
+    }
+
+    private boolean isValidName(String string) {
+        for (char c : string.toCharArray()) {
+            // Only allow lowercase letters and numbers
+            // To be honest there really isn't any reason to do this
+            if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || c == '-' || c == '_')
+                continue;
+            return false;
+        }
+        return true;
+    }
+
+    public int runSetWarpCommand(CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getExecutor() instanceof Player player) || !player.hasPermission("georgestp.setwarp"))
+            return 1;
+        String warpName = ctx.getArgument("warp", String.class);
+        if (!isValidName(warpName)) {
+            player.sendMessage(Component.text("Invalid name for warp! Can only contain lowercase characters, number, _ or -").color(NamedTextColor.RED));
+            return 1;
+        }
+
+        Location location = ctx.getSource().getLocation();
+        allWarps.put(warpName, location);
+        player.sendMessage(Component.text("Set this warp to your location").color(GTPlugin.mainThemeColor));
+        dirty = true;
+        return 1;
+    }
+
+    public int runDelWarpCommand(CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getExecutor() instanceof Player player) || !player.hasPermission("georgestp.setwarp"))
+            return 1;
+        String warpName = ctx.getArgument("warp", String.class);
+
+        if (allWarps.remove(warpName) == null)
+            player.sendMessage(Component.text("This warp doesn't exits!").color(NamedTextColor.RED));
+        else
+            player.sendMessage(Component.text("Removed this warp").color(GTPlugin.mainThemeColor));
+        dirty = true;
+        return 1;
+    }
+
+    public int runWarpCommand(CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getExecutor() instanceof Player player) || GTPlugin.coolDownCheck(player) || !player.hasPermission("georgestp.warp"))
+            return 1;
+        String warpName = ctx.getArgument("warp", String.class).toLowerCase();
+        Location location = allWarps.get(warpName);
+        if (location == null) {
+            player.sendMessage(Component.text("This warp doesn't exits!").color(NamedTextColor.RED));
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 1f);
+        } else {
+            player.sendActionBar(Component.text("Teleporting to warp... Don't move!").color(GTPlugin.mainThemeColor));
+            GTPlugin.teleportManager.addTeleport(player, location, plugin.getConfig().getInt("tp-standstill"));
+        }
+
+        return 1;
+    }
+
+    public void tick() {
+        saveCounter++;
+        if (saveCounter >= 1200) {
+            saveCounter = 0;
+            if (dirty) {
+                dirty = false;
+
+               saveAllWarps();
+            }
+        }
+    }
+
+    public void saveAllWarps() {
+        config = new YamlConfiguration();
+        for (String k : new HashSet<>(config.getKeys(false))) config.set(k, null);
+
+        allWarps.forEach((id, location) -> {
+            String base = id;
+            config.set(base + ".world", location.getWorld().getName());
+            config.set(base + ".x", location.getX());
+            config.set(base + ".y", location.getY());
+            config.set(base + ".z", location.getZ());
+            config.set(base + ".yaw", location.getYaw());
+            config.set(base + ".pitch", location.getPitch());
+        });
+
+        try {
+            config.save(file);
+        } catch (IOException err) {
+            plugin.getLogger().severe("Can't save warps.yml");
+        }
+    }
+
+    public CompletableFuture<Suggestions> suggestWarp(CommandContext<CommandSourceStack> ctx, SuggestionsBuilder builder) {
+        for (String string : allWarps.keySet()) {
+            if (string.startsWith(builder.getRemainingLowerCase()))
+                builder.suggest(string);
+        }
+        return builder.buildFuture();
+    }
+}
