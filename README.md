@@ -1,0 +1,50 @@
+George's Teleportation Plugin
+A simple paper plugin for teleportation-related features.
+
+Features:
+- /spawn
+- tpa
+- homes
+- /back
+- warps
+
+Each feature is configurable
+
+Config:
+
+```yaml
+# SPAWN (/spawn)
+spawn-tp-enabled: true
+# Change this:
+spawn-location:
+  world: "world"
+  x: 0.5
+  y: 64
+  z: 0.5
+
+# TPA
+tpa-enabled: true
+# TPA request expiration time [in ticks]
+tpa-request-expiration-time: 600
+# Ping the player when receiving a TPA request
+tpa-request-ping: true
+
+# HOMES
+homes-enabled: true
+
+# WARPS
+warps-enabled: true
+
+# BACK (/back)
+back-enabled: true
+# /back works for death locations
+back-save-deaths: true
+# Previous locations expiration time [in ticks]
+back-expiration: 6000
+
+# Teleport stand-still [in ticks]
+tp-standstill: 40
+# Teleport cooldown [in ticks]
+tp-cooldown: 120
+
+```
