@@ -40,7 +40,7 @@ public class StandStillTeleportManager {
             else if (teleport.tick())
                 teleportsToExecute.add(teleport);
             if (teleport.ticksLeft % 20 == 0 && teleport.ticksLeft != 0) {
-                teleport.player.sendActionBar(Component.text("Teleporting in ").color(GTPlugin.mainThemeColor).append(Component.text(teleport.ticksLeft / 20).color(GTPlugin.lightThemeColor), Component.text(" seconds...").color(GTPlugin.mainThemeColor)));
+                teleport.player.sendActionBar(GTPlugin.langUtil.getMessage("teleporting-standstill-countdown", Map.of("time", String.valueOf(teleport.ticksLeft / 20))));
                 teleport.player.playSound(teleport.player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1f, 1f);
             }
         });
@@ -54,13 +54,13 @@ public class StandStillTeleportManager {
             if (canStand(destination)) {
                 if (teleport.saveBack)
                     GTPlugin.backTPManager.addBack(teleport.player, teleport.player.getLocation());
-                teleport.player.sendActionBar(Component.text("Teleporting...").color(GTPlugin.mainThemeColor));
+                teleport.player.sendActionBar(GTPlugin.langUtil.getMessage("teleporting-standstill-teleporting", Collections.emptyMap()));
                 coolDowns.put(teleport.player.getUniqueId(), new AtomicInteger(plugin.getConfig().getInt("tp-cooldown")));
                 teleport.player.teleport(destination);
                 teleport.player.playSound(teleport.player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1f);
 
             } else {
-                teleport.player.sendActionBar(Component.text("Cant teleport! Position obstructed!").color(NamedTextColor.RED));
+                teleport.player.sendActionBar(GTPlugin.langUtil.getMessage("teleporting-standstill-obstructed", Collections.emptyMap()));
                 teleport.player.playSound(teleport.player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 1f);
             }
         }
@@ -89,7 +89,7 @@ public class StandStillTeleportManager {
         StandStillTeleport teleport = standStillTeleports.get(player.getUniqueId());
         if (teleport != null) {
             standStillTeleports.remove(player.getUniqueId());
-            player.sendActionBar(Component.text("You moved! Cancelling teleport...").color(NamedTextColor.RED));
+            player.sendActionBar(GTPlugin.langUtil.getMessage("teleporting-standstill-moved", Collections.emptyMap()));
         }
     }
 

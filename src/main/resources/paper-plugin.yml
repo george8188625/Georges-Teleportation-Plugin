@@ -8,39 +8,51 @@ commands:
   tpa:
     description: Send a teleport request
     permission: georgestp.tpa
+    permission-message: "You do not have permission to use this command"
   tpahere:
     description: Send a reversed teleport request
     permission: georgestp.tpa
+    permission-message: "You do not have permission to use this command"
   tpaccept:
     description: Accept a teleport request
     permission: georgestp.tpa
+    permission-message: "You do not have permission to use this command"
   tpadeny:
     description: Deny a teleport request
     permission: georgestp.tpa
+    permission-message: "You do not have permission to use this command"
   tpacancel:
     description: Cancel a teleport request
     permission: georgestp.tpa
+    permission-message: "You do not have permission to use this command"
   spawn:
     description: Teleport to spawn
     permission: georgestp.spawn
+    permission-message: "You do not have permission to use this command"
   sethome:
     description: Set a home
     permission: georgestp.home
+    permission-message: "You do not have permission to use this command"
   home:
     description: Teleport to your home
     permission: georgestp.home
+    permission-message: "You do not have permission to use this command"
   warp:
     description: Teleport to a warp
     permission: georgestp.warp
+    permission-message: "You do not have permission to use this command"
   setwarp:
     description: Create or modify a warp
     permission: georgestp.setwarp
+    permission-message: "You do not have permission to use this command"
   delwarp:
     description: Remove a warp
     permission: georgestp.setwarp
+    permission-message: "You do not have permission to use this command"
   back:
     description: Remove a warp
     permission: georgestp.back
+    permission-message: "You do not have permission to use this command"
 
 permissions:
   georgestp.tpa:

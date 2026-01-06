@@ -1,12 +1,9 @@
 package com.george_vi.georgetp;
 
-import com.george_vi.georgetp.GTPlugin;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -77,13 +74,45 @@ public class WarpManager {
             return 1;
         String warpName = ctx.getArgument("warp", String.class);
         if (!isValidName(warpName)) {
-            player.sendMessage(Component.text("Invalid name for warp! Can only contain lowercase characters, number, _ or -").color(NamedTextColor.RED));
+            player.sendMessage(GTPlugin.langUtil.getMessage("warp-set-invalid"));
             return 1;
         }
 
         Location location = ctx.getSource().getLocation();
         allWarps.put(warpName, location);
-        player.sendMessage(Component.text("Set this warp to your location").color(GTPlugin.mainThemeColor));
+        player.sendMessage(GTPlugin.langUtil.getMessage("warp-set"));
+        dirty = true;
+        return 1;
+    }
+
+    public int runSetAlignedWarpCommand(CommandContext<CommandSourceStack> ctx) {
+        if (!(ctx.getSource().getExecutor() instanceof Player player) || !player.hasPermission("georgestp.setwarp"))
+            return 1;
+        String warpName = ctx.getArgument("warp", String.class);
+        if (!isValidName(warpName)) {
+            player.sendMessage(GTPlugin.langUtil.getMessage("warp-set-invalid"));
+            return 1;
+        }
+
+        Location location = ctx.getSource().getLocation();
+        double x = location.x();
+        double y = location.y();
+        double z = location.z();
+        float yaw = location.getYaw();
+        x = Math.round(x - 0.5) + 0.5;
+        y = Math.round(y - 0.5) + 0.5;
+        z = Math.round(z - 0.5) + 0.5;
+        if (yaw < 45 && yaw > -45)
+            yaw = 0;
+        else if (yaw < -45 && yaw > -135)
+            yaw = -90;
+        else if (yaw < -135 || yaw > 135)
+            yaw = 180;
+        else if (yaw < 135 && yaw > 45)
+            yaw = 90;
+
+        allWarps.put(warpName, new Location(location.getWorld(), x, y, z, yaw, 0f));
+        player.sendMessage(GTPlugin.langUtil.getMessage("warp-set"));
         dirty = true;
         return 1;
     }
@@ -94,9 +123,9 @@ public class WarpManager {
         String warpName = ctx.getArgument("warp", String.class);
 
         if (allWarps.remove(warpName) == null)
-            player.sendMessage(Component.text("This warp doesn't exits!").color(NamedTextColor.RED));
+            player.sendMessage(GTPlugin.langUtil.getMessage("warp-doesnt-exist", Map.of("warp", warpName)));
         else
-            player.sendMessage(Component.text("Removed this warp").color(GTPlugin.mainThemeColor));
+            player.sendMessage(GTPlugin.langUtil.getMessage("warp-removed"));
         dirty = true;
         return 1;
     }
@@ -107,10 +136,10 @@ public class WarpManager {
         String warpName = ctx.getArgument("warp", String.class).toLowerCase();
         Location location = allWarps.get(warpName);
         if (location == null) {
-            player.sendMessage(Component.text("This warp doesn't exits!").color(NamedTextColor.RED));
+            player.sendMessage(GTPlugin.langUtil.getMessage("warp-doesnt-exist", Map.of("warp", warpName)));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 1f);
         } else {
-            player.sendActionBar(Component.text("Teleporting to warp... Don't move!").color(GTPlugin.mainThemeColor));
+            player.sendActionBar(GTPlugin.langUtil.getMessage("warp-teleporting", Map.of("warp", warpName)));
             GTPlugin.teleportManager.addTeleport(player, location, plugin.getConfig().getInt("tp-standstill"));
         }
 
@@ -156,5 +185,9 @@ public class WarpManager {
                 builder.suggest(string);
         }
         return builder.buildFuture();
+    }
+
+    public Location getWarp(Player player, String id) {
+        return allWarps.get(id);
     }
 }

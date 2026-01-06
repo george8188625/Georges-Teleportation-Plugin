@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.server.ServerTickStartEvent;
 import com.george_vi.georgetp.back.BackTeleportManager;
 import com.george_vi.georgetp.tp.StandStillTeleportManager;
 import com.george_vi.georgetp.tpa.TpaManager;
+import com.george_vi.georgetp.util.LangUtil;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -11,13 +12,10 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,14 +23,15 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Map;
+
 public final class GTPlugin extends JavaPlugin implements Listener {
     public static StandStillTeleportManager teleportManager;
     public static TpaManager tpaManager;
     public static HomeManager homeManager;
     public static WarpManager warpManager;
     public static BackTeleportManager backTPManager;
-    public static TextColor mainThemeColor = TextColor.color(0x58F5EB);
-    public static TextColor lightThemeColor = TextColor.color(0xD1FFFB);
+    public static LangUtil langUtil;
 
     @Override
     public void onEnable() {
@@ -43,6 +42,7 @@ public final class GTPlugin extends JavaPlugin implements Listener {
         homeManager = new HomeManager(this);
         warpManager = new WarpManager(this);
         backTPManager = new BackTeleportManager(this);
+        langUtil = new LangUtil(this);
         Bukkit.getPluginManager().registerEvents(this, this);
 
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
@@ -81,7 +81,8 @@ public final class GTPlugin extends JavaPlugin implements Listener {
             }
             if (getConfig().getBoolean("warps-enabled")) {
                 LiteralCommandNode<CommandSourceStack> delCommandNode = Commands.literal("delwarp").then(Commands.argument("warp", StringArgumentType.word()).suggests(warpManager::suggestWarp).executes(warpManager::runDelWarpCommand)).build();
-                LiteralCommandNode<CommandSourceStack> setCommandNode = Commands.literal("setwarp").then(Commands.argument("warp", StringArgumentType.word()).suggests(warpManager::suggestWarp).executes(warpManager::runSetWarpCommand)).build();
+                LiteralCommandNode<CommandSourceStack> setCommandNode = Commands.literal("setwarp").then(Commands.argument("warp", StringArgumentType.word()).suggests(warpManager::suggestWarp).executes(warpManager::runSetWarpCommand)
+                        .then(Commands.literal("align").executes(warpManager::runSetAlignedWarpCommand))).build();
                 LiteralCommandNode<CommandSourceStack> commandNode = Commands.literal("warp").then(Commands.argument("warp", StringArgumentType.word()).suggests(warpManager::suggestWarp).executes(warpManager::runWarpCommand)).build();
                 commands.registrar().register(delCommandNode);
                 commands.registrar().register(setCommandNode);
@@ -127,24 +128,21 @@ public final class GTPlugin extends JavaPlugin implements Listener {
         if (!(ctx.getSource().getExecutor() instanceof Player player) || GTPlugin.coolDownCheck(player) || !player.hasPermission("georgestp.spawn"))
             return 1;
 
-        String worldId = getConfig().getString("spawn-location.world");
-        World world = Bukkit.getWorld(worldId);
+        Location loc = warpManager.getWarp(player, "spawn");
+        if (loc == null) {
+            player.sendActionBar(langUtil.getMessage("spawn-missing"));
 
-        double x = getConfig().getDouble("spawn-location.x");
-        double y = getConfig().getDouble("spawn-location.y");
-        double z = getConfig().getDouble("spawn-location.z");
-        float pitch = (float) getConfig().getDouble("spawn-location.pitch");
-        float yaw = (float) getConfig().getDouble("spawn-location.yaw");
+            return 1;
+        }
 
-        Location spawn = new Location(world, x, y, z, yaw, pitch);
-        player.sendActionBar(Component.text("Teleporting to spawn... Don't move!").color(mainThemeColor));
-        teleportManager.addTeleport(player, spawn, getConfig().getInt("tp-standstill"));
+        player.sendActionBar(langUtil.getMessage("spawn-teleporting"));
+        teleportManager.addTeleport(player, loc, getConfig().getInt("tp-standstill"));
         return 1;
     }
 
     public static boolean coolDownCheck(Player player) {
         if (GTPlugin.teleportManager.isOnCoolDown(player)) {
-            player.sendActionBar(Component.text("You're still on cooldown for " + (GTPlugin.teleportManager.getCooldown(player) / 20 + 1) + " seconds!").color(NamedTextColor.RED));
+            player.sendActionBar(langUtil.getMessage("teleporting-cooldown", Map.of("time", String.valueOf(GTPlugin.teleportManager.getCooldown(player) / 20 + 1))));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 1f);
             return true;
         }

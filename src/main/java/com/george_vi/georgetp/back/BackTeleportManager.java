@@ -68,12 +68,12 @@ public class BackTeleportManager {
         BackTeleportEntry entry = allBacks.get(player.getUniqueId());
 
         if (entry == null) {
-            player.sendMessage(Component.text("Your don't have any non-expired previous locations!").color(NamedTextColor.RED));
+            player.sendMessage(GTPlugin.langUtil.getMessage("back-expired"));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 1f);
             return 1;
         }
 
-        player.sendActionBar(Component.text("Teleporting to your previous location...").color(GTPlugin.mainThemeColor));
+        player.sendActionBar(GTPlugin.langUtil.getMessage("back-teleporting"));
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1f);
         GTPlugin.teleportManager.addTeleportNoBack(player, entry.location, plugin.getConfig().getInt("tp-standstill"));
         allBacks.remove(player.getUniqueId());

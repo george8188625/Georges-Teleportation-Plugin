@@ -69,7 +69,7 @@ public class HomeManager {
 
         Location location = ctx.getSource().getLocation();
         allHomes.put(player.getUniqueId(), location);
-        player.sendActionBar(Component.text("Your home has been set").color(GTPlugin.mainThemeColor));
+        player.sendActionBar(GTPlugin.langUtil.getMessage("home-set"));
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1f);
         dirty = true;
         return 1;
@@ -81,10 +81,10 @@ public class HomeManager {
 
         Location location = allHomes.get(player.getUniqueId());
         if (location == null) {
-            player.sendActionBar(Component.text("No home set!").color(NamedTextColor.RED));
+            player.sendActionBar(GTPlugin.langUtil.getMessage("home-missing"));
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1f, 1f);
         } else {
-            player.sendActionBar(Component.text("Teleporting to home...").color(GTPlugin.mainThemeColor));
+            player.sendActionBar(GTPlugin.langUtil.getMessage("home-teleporting"));
             GTPlugin.teleportManager.addTeleport(player, location, plugin.getConfig().getInt("tp-standstill"));
         }
 
