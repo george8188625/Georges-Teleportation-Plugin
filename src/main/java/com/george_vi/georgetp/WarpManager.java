@@ -44,8 +44,6 @@ public class WarpManager {
         allWarps.clear();
 
         for (String key : config.getKeys(false)) {
-            if (!isValidName(key))
-                continue;
 
             String world = config.getString(key + ".world", null);
             double x = config.getDouble(key + ".x", 0);
@@ -54,29 +52,14 @@ public class WarpManager {
             float yaw = (float) config.getDouble(key + ".yaw", 0f);
             float pitch = (float) config.getDouble(key + ".pitch", 0f);
             if (world != null && Bukkit.getWorld(world) != null)
-                allWarps.put(key, new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch));
+                allWarps.put(key.replace('◦', '.'), new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch));
         }
-    }
-
-    private boolean isValidName(String string) {
-        for (char c : string.toCharArray()) {
-            // Only allow lowercase letters and numbers
-            // To be honest there really isn't any reason to do this
-            if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57) || c == '-' || c == '_')
-                continue;
-            return false;
-        }
-        return true;
     }
 
     public int runSetWarpCommand(CommandContext<CommandSourceStack> ctx) {
         if (!(ctx.getSource().getExecutor() instanceof Player player) || !player.hasPermission("georgestp.setwarp"))
             return 1;
         String warpName = ctx.getArgument("warp", String.class);
-        if (!isValidName(warpName)) {
-            player.sendMessage(GTPlugin.langUtil.getMessage("warp-set-invalid"));
-            return 1;
-        }
 
         Location location = ctx.getSource().getLocation();
         allWarps.put(warpName, location);
@@ -89,10 +72,6 @@ public class WarpManager {
         if (!(ctx.getSource().getExecutor() instanceof Player player) || !player.hasPermission("georgestp.setwarp"))
             return 1;
         String warpName = ctx.getArgument("warp", String.class);
-        if (!isValidName(warpName)) {
-            player.sendMessage(GTPlugin.langUtil.getMessage("warp-set-invalid"));
-            return 1;
-        }
 
         Location location = ctx.getSource().getLocation();
         double x = location.x();
@@ -163,7 +142,8 @@ public class WarpManager {
         for (String k : new HashSet<>(config.getKeys(false))) config.set(k, null);
 
         allWarps.forEach((id, location) -> {
-            String base = id;
+            // This is a hacky way to not separate paths at '.' characters
+            String base = id.replace('.', '◦');
             config.set(base + ".world", location.getWorld().getName());
             config.set(base + ".x", location.getX());
             config.set(base + ".y", location.getY());

@@ -74,9 +74,14 @@ public final class GTPlugin extends JavaPlugin implements Listener {
                 commands.registrar().register(tpaHereCommandNode);
             }
             if (getConfig().getBoolean("homes-enabled")) {
-                LiteralCommandNode<CommandSourceStack> setCommandNode = Commands.literal("sethome").executes(homeManager::runSetHomeCommand).build();
-                LiteralCommandNode<CommandSourceStack> commandNode = Commands.literal("home").executes(homeManager::runHomeCommand).build();
+                LiteralCommandNode<CommandSourceStack> setCommandNode = Commands.literal("sethome").executes(ctx -> homeManager.runSetHomeCommand(ctx, false))
+                        .then(Commands.argument("home", StringArgumentType.word()).suggests(homeManager::suggestHome).executes(ctx -> homeManager.runSetHomeCommand(ctx, true))).build();
+                LiteralCommandNode<CommandSourceStack> delCommandNode = Commands.literal("delhome").executes(ctx -> homeManager.runDelHomeCommand(ctx, false))
+                        .then(Commands.argument("home", StringArgumentType.word()).suggests(homeManager::suggestHome).executes(ctx -> homeManager.runDelHomeCommand(ctx, true))).build();
+                LiteralCommandNode<CommandSourceStack> commandNode = Commands.literal("home").executes(ctx -> homeManager.runHomeCommand(ctx, false))
+                        .then(Commands.argument("home", StringArgumentType.word()).suggests(homeManager::suggestHome).executes(ctx -> homeManager.runHomeCommand(ctx, true))).build();
                 commands.registrar().register(setCommandNode);
+                commands.registrar().register(delCommandNode);
                 commands.registrar().register(commandNode);
             }
             if (getConfig().getBoolean("warps-enabled")) {
@@ -130,8 +135,7 @@ public final class GTPlugin extends JavaPlugin implements Listener {
 
         Location loc = warpManager.getWarp(player, "spawn");
         if (loc == null) {
-            player.sendActionBar(langUtil.getMessage("spawn-missing"));
-
+            player.sendMessage(langUtil.getMessage("spawn-missing"));
             return 1;
         }
 

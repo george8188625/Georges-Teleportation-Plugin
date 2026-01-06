@@ -96,7 +96,7 @@ public class LangUtil {
                     } else if (tagContents.equals("glightblue")) {
                         style = setColor(style, 0xb3d9ff);
                     } else if (tagContents.equals("glightred")) {
-                        style = setColor(style, 0xffb3b3);
+                        style = setColor(style, 0xff8a8a);
                     } else if (tagContents.equals("r")) {
                         style = 0xffffff;
                     } else {
