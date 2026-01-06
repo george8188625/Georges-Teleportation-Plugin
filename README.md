@@ -14,13 +14,15 @@ Config:
 
 ```yaml
 # SPAWN (/spawn)
+# /spawn uses the warp system. Make sure warp has a 'spawn' warp with the correct position
+# to set spawn, enable warps and type '/setwarp spawn align' when standing on a block
+# you can disable warps afterward
 spawn-tp-enabled: true
-# Change this:
-spawn-location:
-  world: "world"
-  x: 0.5
-  y: 64
-  z: 0.5
+
+# WARPS
+# There really is no reason to disable it because there are no warps by default.
+# Warps are server-wide and defined by admins
+warps-enabled: true
 
 # TPA
 tpa-enabled: true
@@ -31,9 +33,7 @@ tpa-request-ping: true
 
 # HOMES
 homes-enabled: true
-
-# WARPS
-warps-enabled: true
+home-limit: 3
 
 # BACK (/back)
 back-enabled: true
@@ -43,8 +43,7 @@ back-save-deaths: true
 back-expiration: 6000
 
 # Teleport stand-still [in ticks]
-tp-standstill: 40
+tp-standstill: 60
 # Teleport cooldown [in ticks]
 tp-cooldown: 120
-
 ```
